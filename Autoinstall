@@ -1,0 +1,24 @@
+### Default paths and settings ###
+# SQUID_CONF="/etc/squid/squid.conf"
+# SQUID_BINARY="squid"
+# ACCESS_LOG="/var/log/squid/access.log"
+# ERROR_LOG="/var/log/messages"
+# CACHE_LOG="/var/log/squid/cache.log"
+# PROC_PATH="/proc"
+# SERVER_USER="squid"
+# SERVER_GROUP="squid"
+# TOPLEVEL_SWAP_PATH "/var/spool"
+
+### Installation for Debian/Ubuntu derived systems ###
+# ./configure --prefix=/usr --sysconfdir=/etc \
+# --localstatedir=/var --sbindir=/usr/sbin \
+# SYSINIT_START_CMD="update-rc.d -f squid defaults" \
+# SYSINIT_STOP_CMD="update-rc.d -f squid remove" &&
+# make && make install
+
+### Installation for Redhat/Fedora derived systems ###
+./configure --prefix=/usr --sysconfdir=/etc \
+--localstatedir=/var --sbindir=/usr/sbin \
+SYSINIT_START_CMD="chkconfig squid on" \
+SYSINIT_STOP_CMD="chkconfig squid off" &&
+make && make install

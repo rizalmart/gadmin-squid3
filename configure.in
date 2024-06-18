@@ -1,0 +1,207 @@
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT(configure.in)
+
+AM_INIT_AUTOMAKE(gadmin-squid, 3.0.0)
+AM_CONFIG_HEADER(config.h)
+AM_MAINTAINER_MODE
+
+AC_CANONICAL_HOST
+AC_MSG_CHECKING([for OS type])
+case $host in
+    *-linux*)
+    AC_MSG_RESULT([Linux ($host) found.])
+    AC_DEFINE(USE_LINUX,1,[using linux macros...])
+    ;;
+    *-solaris*)
+    AC_MSG_RESULT([Solaris ($host) found.])
+    AC_DEFINE(USE_SUNOS,1,[using sunos macros...])
+    ;;
+    *-sunos*)
+    AC_MSG_RESULT([Solaris ($host) found.])
+    AC_DEFINE(USE_SUNOS,1,[using sunos macros...])
+    ;;
+    *-freebsd*)
+    AC_MSG_RESULT([Free BSD ($host) found.])
+    AC_DEFINE(USE_FREEBSD,1,[using freebsd macros...])
+    ;;
+    *-openbsd*)
+    AC_MSG_RESULT([Open BSD ($host) found.])
+    AC_DEFINE(USE_OPENBSD,1,[using openbsd macros...])
+    ;;
+    *-netbsd*)
+    AC_MSG_RESULT([Net BSD ($host) found.])
+    AC_DEFINE(USE_NETBSD,1,[using netbsd macros...])
+    ;;
+    *-darwin*)
+    AC_MSG_RESULT([Darwin Mac OS X ($host) found.])
+    AC_DEFINE(USE_DARWIN,1,[using darwin macros...])
+    ;;
+    *-aix*)
+    AC_MSG_RESULT([AIX ($host) found.])
+    AC_DEFINE(USE_AIX,1,[using aix macros...])
+    ;;
+    *-hpux*)
+    AC_MSG_RESULT([HP UX ($host) found.])
+    AC_DEFINE(USE_HPUX,1,[using hpux macros...])
+    ;;
+    *)
+    AC_MSG_RESULT([Unknown host found: ($host). Using Linux macros...])
+    AC_DEFINE(USE_LINUX,1,[using Linux macros...])
+    ;;
+esac
+
+AC_ISC_POSIX
+AC_PROG_CC
+AM_PROG_CC_STDC
+AC_HEADER_STDC
+
+pkg_modules="gtk+-3.0 >= 3.0.0"
+PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
+AC_SUBST(PACKAGE_CFLAGS)
+AC_SUBST(PACKAGE_LIBS)
+
+GETTEXT_PACKAGE=gadmin-squid
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",[needed for gettext...])
+
+dnl Add the languages which your application supports here.
+ALL_LINGUAS=""
+AM_GLIB_GNU_GETTEXT
+
+dnl Use -Wall if we have gcc (added -lcrypt for crypt).
+changequote(,)dnl
+if test "x$GCC" = "xyes"; then
+  case " $CFLAGS " in
+  *[\ \	]-Wall[\ \	]*) ;;
+  *) CFLAGS="$CFLAGS -Wall" ;;
+  esac
+fi
+changequote([,])dnl
+
+
+dnl Determine if we can link with -lcrypt
+AC_SEARCH_LIBS(crypt, [crypt],
+[test "$ac_cv_search_crypt" = "none required" || AUTHLIBS="-lcrypt $AUTHLIBS"
+AC_DEFINE_UNQUOTED(HAVE_CRYPT,1,[Define for linking with -lcrypt])])
+
+
+dnl some dynamic defines and corrections for configure options
+SYSCONFDIR=`eval echo $sysconfdir`
+AC_SUBST(SYSCONFDIR)
+
+LOCALSTATEDIR=`eval echo $localstatedir`
+AC_SUBST(LOCALSTATEDIR)
+
+test "x$prefix" = xNONE && prefix=$ac_default_prefix
+test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
+
+
+dnl Path to squid's configuration file.
+default_squid_conf="/etc/squid/squid.conf"
+test "x$SQUID_CONF" = x && SQUID_CONF=$default_squid_conf
+AC_DEFINE_UNQUOTED(SQUID_CONF,"`eval echo "${SQUID_CONF}"`",[path to squid.conf])
+AC_MSG_RESULT([Using configuration file: (${SQUID_CONF})])
+
+dnl The server runs as this user.
+default_server_user="squid"
+test "x$SERVER_USER" = x && SERVER_USER=$default_server_user
+AC_DEFINE_UNQUOTED(SERVER_USER,"`eval echo "${SERVER_USER}"`",[The server runs as this user])
+AC_MSG_RESULT([Using server user: (${SERVER_USER})])
+
+dnl The server runs as this group.
+default_server_group="squid"
+test "x$SERVER_GROUP" = x && SERVER_GROUP=$default_server_group
+AC_DEFINE_UNQUOTED(SERVER_GROUP,"`eval echo "${SERVER_GROUP}"`",[The server runs as this group])
+AC_MSG_RESULT([Using server group: (${SERVER_GROUP})])
+
+dnl Path to squids toplevel swap directory.
+default_toplevel_swap_path="/var/spool"/${SERVER_USER}
+test "x$TOPLEVEL_SWAP_PATH" = x && TOPLEVEL_SWAP_PATH=$default_toplevel_swap_path
+AC_DEFINE_UNQUOTED(TOPLEVEL_SWAP_PATH,"`eval echo "${TOPLEVEL_SWAP_PATH}"`",[path to squids toplevel swap directory])
+AC_MSG_RESULT([Using swap/cache directory: (${TOPLEVEL_SWAP_PATH})])
+
+dnl Path to the systems security log.
+default_secure_log="/var/log/secure"
+test "x$SECURE_LOG" = x && SECURE_LOG=$default_secure_log
+AC_DEFINE_UNQUOTED(SECURE_LOG,"`eval echo "${SECURE_LOG}"`",[path to the systems security log])
+AC_MSG_RESULT([Using security log: (${SECURE_LOG})])
+
+dnl Path to squid's access log.
+default_access_log="/var/log/squid/access.log"
+test "x$ACCESS_LOG" = x && ACCESS_LOG=$default_access_log
+AC_DEFINE_UNQUOTED(ACCESS_LOG,"`eval echo "${ACCESS_LOG}"`",[path to squids access log])
+AC_MSG_RESULT([Using access log: (${ACCESS_LOG})])
+
+dnl Path to squid's error log.
+default_error_log="/var/log/messages"
+test "x$ERROR_LOG" = x && ERROR_LOG=$default_error_log
+AC_DEFINE_UNQUOTED(ERROR_LOG,"`eval echo "${ERROR_LOG}"`",[path to squids error log])
+AC_MSG_RESULT([Using error log: (${ERROR_LOG})])
+
+dnl Path to squid's cache log.
+default_cache_log="/var/log/squid/cache.log"
+test "x$CACHE_LOG" = x && CACHE_LOG=$default_cache_log
+AC_DEFINE_UNQUOTED(CACHE_LOG,"`eval echo "${CACHE_LOG}"`",[path to squids cache log])
+AC_MSG_RESULT([Using cache log: (${CACHE_LOG})])
+
+dnl Path to the squid binary.
+default_squid_binary="squid"
+test "x$SQUID_BINARY" = x && SQUID_BINARY=$default_squid_binary
+AC_DEFINE_UNQUOTED(SQUID_BINARY,"`eval echo "${SQUID_BINARY}"`",[Path to the squid binary])
+AC_MSG_RESULT([Using SQUID binary: (${SQUID_BINARY})])
+
+dnl Path to the proc filesystem.
+default_proc_path="/proc"
+test "x$PROC_PATH" = x && PROC_PATH=$default_proc_path
+AC_DEFINE_UNQUOTED(PROC_PATH,"`eval echo "${PROC_PATH}"`",[Path to the proc filesystem])
+AC_MSG_RESULT([Using Proc filesystem: (${PROC_PATH})])
+
+dnl Minimum acceptable password length.
+dnl default_min_pass_len=6
+dnl test "x$MIN_PASS_LEN" = x && MIN_PASS_LEN=$default_min_pass_len
+dnl AC_DEFINE_UNQUOTED(MIN_PASS_LEN,${MIN_PASS_LEN},[The minimum accepted password length.])
+dnl AC_MSG_RESULT([Using MIN_PASS_LEN: (${MIN_PASS_LEN})])
+
+dnl Command for making the server start at boot.
+default_sysinit_start_cmd="echo"
+test "x$SYSINIT_START_CMD" = x && SYSINIT_START_CMD=$default_sysinit_start_cmd
+AC_DEFINE_UNQUOTED(SYSINIT_START_CMD,"`eval echo "${SYSINIT_START_CMD}"`",[Command for making the server start at boot])
+AC_MSG_RESULT([Using sysinit start command: (${SYSINIT_START_CMD})])
+
+dnl Command for not making the server start at boot.
+default_sysinit_stop_cmd="echo"
+test "x$SYSINIT_STOP_CMD" = x && SYSINIT_STOP_CMD=$default_sysinit_stop_cmd
+AC_DEFINE_UNQUOTED(SYSINIT_STOP_CMD,"`eval echo "${SYSINIT_STOP_CMD}"`",[Command for not making the server not start at boot])
+AC_MSG_RESULT([Using sysinit stop command: (${SYSINIT_STOP_CMD})])
+
+dnl Hardcoded application config directory.
+default_appconfdir="/etc/gadmin-squid"
+test "x$APPCONFDIR" = x && APPCONFDIR=$default_appconfdir
+AC_DEFINE_UNQUOTED(APPCONFDIR,"`eval echo "${APPCONFDIR}"`",[Application config dir])
+AC_MSG_RESULT([Using application config dir: (${APPCONFDIR})])
+
+dnl Path to the backup squid.conf file.
+default_squid_conf_backup="${APPCONFDIR}/squid.conf.old.gadmin-squid-${VERSION}"
+test "x$SQUID_CONF_BACKUP" = x && SQUID_CONF_BACKUP=$default_squid_conf_backup
+AC_DEFINE_UNQUOTED(SQUID_CONF_BACKUP,"`eval echo "${SQUID_CONF_BACKUP}"`",[Path to backup squid.conf])
+AC_MSG_RESULT([Using backup squid.conf file: (${SQUID_CONF_BACKUP})])
+
+dnl Here we hardcode passwd, shadow, group, gshadow, ftpusers and shutmsg.
+AC_DEFINE_UNQUOTED(GH_PASSWD,"`eval echo "/etc/passwd"`",[path to passwd])
+AC_DEFINE_UNQUOTED(GH_SHADOW,"`eval echo "/etc/shadow"`",[path to shadow])
+AC_DEFINE_UNQUOTED(GH_GROUP,"`eval echo "/etc/group"`",[path to group])
+AC_DEFINE_UNQUOTED(GH_GSHADOW,"`eval echo "/etc/gshadow"`",[path to gshadow])
+AC_DEFINE_UNQUOTED(GH_VARDIR,"`eval echo "${localstatedir}"`",[var dir])
+
+dnl Patch fix: exec_prefix etc cannot be used as path.
+dnl Nope: AC_DEFINE_UNQUOTED(LIBDIR,"${libdir}",[path to the library directory])
+dnl Nope: AC_DEFINE_UNQUOTED(LIBDIR,"`eval echo "${libdir}"`",[path to the library directory])
+AC_DEFINE_UNQUOTED(LIBDIR,"`eval echo "${prefix}/lib64"`",[path to the library directory])
+
+
+AC_OUTPUT([
+Makefile
+src/Makefile
+po/Makefile.in
+])
